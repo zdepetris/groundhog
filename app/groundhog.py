@@ -1,4 +1,3 @@
-
 import logging
 import sys
 import time
@@ -7,11 +6,10 @@ import argparse
 import json
 from copy import deepcopy
 import multiprocessing as mp
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, Response
 import srtm_elevation_and_slope as srtm_methods
 
 logger = logging.getLogger()
-
 
 # Flask object for resident support
 flask_app = Flask(__name__)
@@ -30,7 +28,8 @@ class Heading:
     stride = None
     unique_key = None
 
-    def __init__(self, latitude, longitude, bearing=None, stride=DEFAULT_STRIDE, unique_key=None):
+    def __init__(self, latitude, longitude, bearing=None,
+                 stride=DEFAULT_STRIDE, unique_key=None):
         if longitude > 180.0:
             longitude = longitude - 360.0
         self.latitude = latitude
@@ -49,12 +48,12 @@ class Heading:
 
     def to_dict(self):
         return {
-                "latitude": self.latitude,
-                "longitude": self.longitude,
-                "bearing": self.bearing,
-                "stride": self.stride,
-                "unique_key": self.unique_key
-               }
+            "latitude": self.latitude,
+            "longitude": self.longitude,
+            "bearing": self.bearing,
+            "stride": self.stride,
+            "unique_key": self.unique_key
+        }
 
 
 def report_sys_info():
@@ -63,18 +62,26 @@ def report_sys_info():
     """
     logger.info("Python version  : " + sys.version)
     logger.info("Number of CPUs  : " + str(psutil.cpu_count()))
-    logger.info("Memory total    : " + str(round(float(psutil.virtual_memory().total) / 2 ** 30, 2)) + "GB")
-    logger.info("Memory useage   : " + str(round(float(psutil.virtual_memory().used) / 2 ** 30, 2)) + "GB")
-    logger.info("Memory available: " + str(round(float(psutil.virtual_memory().available) / 2 ** 30, 2)) + "GB")
+    logger.info("Memory total    : " +
+                str(round(float(psutil.virtual_memory().total) /
+                          2 ** 30, 2)) + "GB")
+    logger.info("Memory useage   : " +
+                str(round(float(psutil.virtual_memory().used) /
+                          2 ** 30, 2)) + "GB")
+    logger.info("Memory available: " +
+                str(round(float(psutil.virtual_memory().available) /
+                          2 ** 30, 2)) + "GB")
 
 
 def get_command_line():
     """
     Get command line arguments
     """
-    ap = argparse.ArgumentParser(description="Terrain slope reporter v" + VERSION)
+    ap = argparse.ArgumentParser(description="Terrain slope reporter v"
+                                             + VERSION)
     # Switches
-    ap.add_argument("-d", "--debug", dest="debug", action="store_true", help="Switch to activate debug mode.")
+    ap.add_argument("-d", "--debug", dest="debug", action="store_true",
+                    help="Switch to activate debug mode.")
     ap.set_defaults(debug=False)
     ap.add_argument("-p", '--port', type=int, default=5005,
                     help='Port you wan to run this on.', required=False)
@@ -117,7 +124,8 @@ def help_response():
         coords - a list of coordinates (NOT IMPLEMENTED YET)
 
         optional:
-        stride (optional, default=250.0) - resolution to calculate slope on in meters (larger is smoother)
+        stride (optional, default=250.0) - resolution to calculate slope on
+                in meters (larger is smoother)
 
         SAMPLE REST CALL:
         http://localhost:5005/groundhog?lat=45.2&lon=-101.3
@@ -143,7 +151,8 @@ def help_response():
 
 def make_json_response(data_list):
     """
-    Takes a dictionary response and converts it to a JSON object for web return
+    Takes a dictionary response and converts it to a JSON object for
+            web return
     """
     results = []
     # Parse the list of data returns
@@ -186,7 +195,8 @@ def json_to_headings(json_coords):
             latitude = float(latitude)
             longitude = float(longitude)
         except ValueError:
-            logger.error("Problem in parsing latitude/longitude given as float.")
+            logger.error("Problem in parsing latitude/longitude "
+                         "given as float.")
             raise ValueError
         if coord.get("bearing") is not None:
             bearing = float(coord.get("bearing"))
@@ -198,7 +208,8 @@ def json_to_headings(json_coords):
             stride = DEFAULT_STRIDE
         unique_key = coord.get("unique_key")
         # Bearing and unique_key aren't required
-        coords.append(Heading(latitude, longitude, bearing=bearing, stride=stride, unique_key=unique_key))
+        coords.append(Heading(latitude, longitude, bearing=bearing,
+                              stride=stride, unique_key=unique_key))
     return coords
 
 
@@ -227,10 +238,10 @@ def rest_to_heading(params):
 
 
 def from_heading(heading):
-    elevation, slope = srtm_methods.slope_from_coord_bearing(heading.longitude,
-                                                             heading.latitude,
-                                                             heading.bearing,
-                                                             stride_length=heading.stride)
+    elevation, slope = srtm_methods.\
+        slope_from_coord_bearing(heading.longitude, heading.latitude,
+                                 heading.bearing,
+                                 stride_length=heading.stride)
     return elevation, slope
 
 
@@ -253,8 +264,9 @@ def from_heading_list(heading_list):
     else:
         for heading in heading_list:
             coord_list.append((heading.longitude, heading.latitude))
-        elevation_list, slope_list, bearing_list = srtm_methods.slope_from_coords_only(coord_list,
-                                                                                       stride_length=stride_length)
+        elevation_list, slope_list, bearing_list = \
+            srtm_methods.slope_from_coords_only(coord_list,
+                                                stride_length=stride_length)
     return elevation_list, slope_list, bearing_list
 
 
@@ -345,10 +357,12 @@ if __name__ == "__main__":
     pool = mp.Pool()  # Instantiate a pool object
     flask_app.config["pool"] = mp.pool.Pool()
     flask_app.config['MAX_CONTENT_LENGTH'] = 1000 * 1024 * 1024  # 1GB limit (this is really big)
-    flask_app.run(host="0.0.0.0", port=args.port, debug=args.debug, use_reloader=False)
+    flask_app.run(host="0.0.0.0", port=args.port, debug=args.debug,
+                  use_reloader=False)
 
     # Shut down and clean up
-    logger.info("Execution time: " + str(round((time.clock() - start) * 1000, 1)) + " ms")
+    logger.info("Execution time: " + str(round((time.clock() - start) *
+                                               1000, 1)) + " ms")
     logger.info("All Done!")
     try:
         mp.sys.exit()

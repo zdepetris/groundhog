@@ -7,7 +7,8 @@ CURRENT_VERSION = "1.1.0"
 
 # ### PYPI VERSION. ###
 date_tmpl = '{dt:%y}.{dt.month}.{dt.day}.{dt.hour}.{dt.minute}.{dt.second}'
-VERSION = ".".join([CURRENT_VERSION, date_tmpl.format(dt=datetime.datetime.now())])
+VERSION = ".".join([CURRENT_VERSION,
+                    date_tmpl.format(dt=datetime.datetime.now())])
 #######################
 
 # Packages used
