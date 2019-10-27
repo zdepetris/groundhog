@@ -20,19 +20,14 @@ class GroundhogClient:
     def get_query(self, payload_json):
         assert isinstance(payload_json, list)
         headers = {'Content-Type': 'application/json'}
-        response = post(self.url, headers=headers,
-                        data=json.dumps(payload_json))
+        response = post(self.url, headers=headers, data=json.dumps(payload_json))
         return(response.json())
 
     def get_df(self, payload_json):
         """
         Get a pandas DataFrame representation of a query result.
         """
-        response_df = pd.DataFrame.from_records(self.get_query(payload_json)
-                                                )[['bearing',
-                                                   'slope',
-                                                   'elevation',
-                                                   'unique_key']]
+        response_df = pd.DataFrame.from_records(self.get_query(payload_json))[['bearing', 'slope', 'elevation', 'unique_key']]
         assert response_df.shape[0] == len(payload_json)
         return(response_df)
 
@@ -50,11 +45,9 @@ def _get_payload_json(df):
                    ascending=True,
                    inplace=False)
     if 'bearing' in df.columns:
-        out = df[['longitude', 'latitude', 'bearing',
-                  'unique_key']].to_dict(orient='records')
+        out = df[['longitude', 'latitude', 'bearing', 'unique_key']].to_dict(orient='records')
     else:
-        out = df[['longitude', 'latitude',
-                  'unique_key']].to_dict(orient='records')
+        out = df[['longitude', 'latitude', 'unique_key']].to_dict(orient='records')
     return(list(out))
 
 
@@ -75,8 +68,7 @@ def append_slope_features(df, host_name, port):
     df['unique_key'] = join_keys
 
     # Get API payload for each asset's data
-    payloads = [_get_payload_json(df[df['assetId'] == asset]) for asset in
-                df.assetId.unique()]
+    payloads = [_get_payload_json(df[df['assetId'] == asset]) for asset in df.assetId.unique()]
 
     # Loop over payloads and get responses
     response_df = pd.concat([client.get_df(pl) for pl in payloads],

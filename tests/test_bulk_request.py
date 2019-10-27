@@ -20,15 +20,14 @@ def request_with_json(json_payload):
     return test_response_json
 
 
-def make_test_json(size=10, stride=DEFAULT_STRIDE, use_bearing=True,
-                   use_geo_point=False):
+def make_test_json(size=10, stride=DEFAULT_STRIDE, use_bearing=True, use_geo_point=False):
     json_payload = []
     latitude_start = 41.52268
     longitude_start = -89.160005
     delta_latitude = 0.05
     delta_longitude = 0.05
     if use_bearing:
-        test_bearing = 90.0  # 233.45
+        test_bearing = 90.0 #233.45
     else:
         test_bearing = None
 
